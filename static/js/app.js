@@ -5,7 +5,71 @@ const API_BASE = '';
 document.addEventListener('DOMContentLoaded', function() {
     loadAPIStatus();
     setupEventListeners();
+    initTheme();
+    initSearchInput();
 });
+
+// Initialize theme from localStorage
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+// Toggle theme
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Add animation effect
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) {
+        toggleBtn.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+            toggleBtn.style.transform = '';
+        }, 300);
+    }
+}
+
+// Update theme icon
+function updateThemeIcon(theme) {
+    const icon = document.getElementById('themeIcon');
+    if (icon) {
+        if (theme === 'dark') {
+            icon.className = 'fas fa-sun';
+        } else {
+            icon.className = 'fas fa-moon';
+        }
+    }
+}
+
+// Initialize search input features
+function initSearchInput() {
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearch');
+    
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                clearBtn.classList.add('show');
+            } else {
+                clearBtn.classList.remove('show');
+            }
+        });
+    }
+}
+
+// Clear search
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    document.getElementById('clearSearch').classList.remove('show');
+    searchInput.focus();
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -19,6 +83,25 @@ function setupEventListeners() {
             performSearch();
         }
     });
+}
+
+// Show toast notification
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}" 
+               style="font-size: 1.5rem; color: var(--${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'warning'}-color);"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // Toggle all filter checkboxes
@@ -51,7 +134,8 @@ async function performSearch() {
     const query = document.getElementById('searchInput').value.trim();
     
     if (!query) {
-        alert('Please enter a search term');
+        showToast('Please enter a search term', 'warning');
+        document.getElementById('searchInput').focus();
         return;
     }
     
@@ -68,13 +152,19 @@ async function performSearch() {
     }
     
     if (recordTypes.length === 0) {
-        alert('Please select at least one record type');
+        showToast('Please select at least one record type', 'warning');
         return;
     }
     
     // Show loading indicator
     showLoading();
     hideResults();
+    
+    // Scroll to loading indicator
+    document.getElementById('loadingIndicator').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
     
     try {
         const response = await fetch(`${API_BASE}/api/search`, {
@@ -94,12 +184,15 @@ async function performSearch() {
         
         if (data.success) {
             displayResults(data);
+            showToast('Search completed successfully!', 'success');
         } else {
             displayError(data.error || 'An error occurred during search');
+            showToast('Search failed: ' + (data.error || 'Unknown error'), 'error');
         }
     } catch (error) {
         hideLoading();
         displayError('Network error: ' + error.message);
+        showToast('Network error: ' + error.message, 'error');
     }
 }
 
@@ -130,6 +223,7 @@ function displayResults(data) {
     
     const results = data.results;
     let hasResults = false;
+    let cardIndex = 0;
     
     // Icon mapping for record types
     const icons = {
@@ -152,8 +246,10 @@ function displayResults(data) {
     };
     
     for (const [recordType, result] of Object.entries(results)) {
+        cardIndex++;
         const card = document.createElement('div');
         card.className = 'result-card';
+        card.style.setProperty('--i', cardIndex);
         
         const hasError = result.error !== undefined;
         const icon = icons[recordType] || 'fa-file';
@@ -193,11 +289,13 @@ function displayResults(data) {
     
     showResults();
     
-    // Scroll to results
-    document.getElementById('resultsSection').scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-    });
+    // Smooth scroll to results with offset
+    setTimeout(() => {
+        document.getElementById('resultsSection').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }, 100);
 }
 
 // Display error message
@@ -267,3 +365,5 @@ function displayAPIStatus(status) {
 // Export functions for HTML onclick handlers
 window.toggleAllFilters = toggleAllFilters;
 window.selectRecordType = selectRecordType;
+window.toggleTheme = toggleTheme;
+window.clearSearch = clearSearch;
