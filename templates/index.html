@@ -9,13 +9,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Animated Sky Background -->
+    <div class="sky-background">
+        <div class="sky-gradient"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+    </div>
+
     <!-- Theme Toggle -->
     <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
         <i class="fas fa-moon" id="themeIcon"></i>
     </div>
 
+    <!-- Tour Button -->
+    <button class="tour-button" id="tourButton" onclick="startTour()">
+        <i class="fas fa-question-circle"></i>
+        <span>Take Tour</span>
+    </button>
+
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
@@ -31,12 +45,12 @@
     <main class="main-content">
         <div class="container">
             <!-- Search Section -->
-            <section class="search-section">
+            <section class="search-section" id="search-section">
                 <h2>Search Public Records</h2>
                 <p class="subtitle">Search across court records, property data, business registrations, and more</p>
                 
                 <div class="search-container">
-                    <div class="search-box">
+                    <div class="search-box" id="search-box">
                         <div class="search-input-wrapper">
                             <input type="text" id="searchInput" placeholder="Enter name, address, business, VIN, or any search term..." />
                             <button class="clear-search" id="clearSearch" onclick="clearSearch()">
@@ -151,6 +165,7 @@
         </div>
     </footer>
 
+    <script src="{{ url_for('static', filename='js/tour.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

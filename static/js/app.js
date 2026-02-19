@@ -7,7 +7,29 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     initTheme();
     initSearchInput();
+    initSkyBackground();
+    
+    // Check and start tour after everything loads
+    if (typeof checkAndStartTour === 'function') {
+        checkAndStartTour();
+    }
 });
+
+// Initialize sky background with dynamic stars
+function initSkyBackground() {
+    const skyBg = document.querySelector('.sky-background');
+    if (!skyBg) return;
+    
+    // Generate stars
+    for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 60 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        skyBg.appendChild(star);
+    }
+}
 
 // Initialize theme from localStorage
 function initTheme() {
