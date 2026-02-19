@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Initialize sky background with dynamic stars
+// Initialize sky background with dynamic stars, planets, and meteors
 function initSkyBackground() {
     const skyBg = document.querySelector('.sky-background');
     if (!skyBg) return;
@@ -28,6 +28,43 @@ function initSkyBackground() {
         star.style.top = Math.random() * 60 + '%';
         star.style.animationDelay = Math.random() * 3 + 's';
         skyBg.appendChild(star);
+    }
+    
+    // Generate planets with varied positions
+    const planets = [
+        { class: 'planet-saturn', top: 15, right: 10 },
+        { class: 'planet-mars', top: 60, left: 5 },
+        { class: 'planet-jupiter', top: 8, left: 15 },
+        { class: 'planet-earth', top: 40, right: 8 },
+        { class: 'planet-moon', top: 25, left: 25 },
+        { class: 'planet-neptune', top: 70, right: 20 },
+        { class: 'planet-venus', top: 45, left: 12 }
+    ];
+    
+    planets.forEach((planetData, index) => {
+        const planet = document.createElement('div');
+        planet.className = `planet ${planetData.class}`;
+        
+        // Set position with slight randomization
+        if (planetData.top) planet.style.top = (planetData.top + (Math.random() * 5 - 2.5)) + '%';
+        if (planetData.left) planet.style.left = (planetData.left + (Math.random() * 5 - 2.5)) + '%';
+        if (planetData.right) planet.style.right = (planetData.right + (Math.random() * 5 - 2.5)) + '%';
+        
+        // Stagger animation delays
+        planet.style.animationDelay = `${index * 0.5}s, ${index * 0.7}s`;
+        
+        skyBg.appendChild(planet);
+    });
+    
+    // Generate shooting stars / meteors
+    for (let i = 0; i < 5; i++) {
+        const meteor = document.createElement('div');
+        meteor.className = 'meteor';
+        meteor.style.left = Math.random() * 100 + '%';
+        meteor.style.top = Math.random() * 30 + '%';
+        meteor.style.animationDelay = (Math.random() * 10 + 5) + 's';
+        meteor.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        skyBg.appendChild(meteor);
     }
 }
 
