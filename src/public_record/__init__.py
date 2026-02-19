@@ -1,7 +1,8 @@
 """Public Record API Integration Package
 
 This package provides a unified interface to access various public record APIs
-including court records, property records, business registrations, and government data.
+including court records, property records, business registrations, government data,
+background checks, and vehicle records.
 """
 
 __version__ = "1.0.0"
@@ -11,7 +12,9 @@ from .apis import (
     CourtRecordsAPI,
     PropertyRecordsAPI,
     BusinessRegistrationAPI,
-    GovernmentDataAPI
+    GovernmentDataAPI,
+    BackgroundCheckAPI,
+    VehicleRecordsAPI
 )
 
 __all__ = [
@@ -19,5 +22,7 @@ __all__ = [
     'CourtRecordsAPI',
     'PropertyRecordsAPI',
     'BusinessRegistrationAPI',
-    'GovernmentDataAPI'
+    'GovernmentDataAPI',
+    'BackgroundCheckAPI',
+    'VehicleRecordsAPI'
 ]

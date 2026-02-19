@@ -5,16 +5,37 @@ from ..base import BaseAPIClient
 
 
 class BusinessRegistrationAPI(BaseAPIClient):
-    """API client for business registration records (e.g., Secretary of State APIs)."""
+    """API client for business registration records.
     
-    def __init__(self, api_key: Optional[str] = None):
+    Integrates multiple business record sources:
+    - OpenCorporates: World's largest open database with 200M+ companies
+    - Coresignal: Fresh company data from public web with 70M+ profiles
+    - The Companies API: Company enrichment with 300+ data points
+    - Moody's: Entity verification from 200+ jurisdictions
+    """
+    
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        opencorporates_key: Optional[str] = None,
+        coresignal_key: Optional[str] = None,
+        companies_api_key: Optional[str] = None
+    ):
         """Initialize Business Registration API client.
         
         Args:
-            api_key: API key for authentication
+            api_key: Default API key
+            opencorporates_key: OpenCorporates API key
+            coresignal_key: Coresignal API key
+            companies_api_key: The Companies API key
         """
-        super().__init__(api_key=api_key, base_url="https://api.business-data.gov")
+        super().__init__(api_key=api_key, base_url="https://api.opencorporates.com")
         self.api_type = "business_registration"
+        self.opencorporates_key = opencorporates_key
+        self.coresignal_key = coresignal_key
+        self.coresignal_base_url = "https://api.coresignal.com"
+        self.companies_api_key = companies_api_key
+        self.companies_base_url = "https://api.thecompaniesapi.com"
     
     def search(self, query: str, **kwargs) -> Dict[str, Any]:
         """Search for business registrations.
@@ -114,4 +135,109 @@ class BusinessRegistrationAPI(BaseAPIClient):
             'business_id': business_id,
             'licenses': [],
             'message': 'Mock implementation. Configure API key to use real data.'
+        }
+    
+    def search_opencorporates(self, company_name: str, jurisdiction: Optional[str] = None) -> Dict[str, Any]:
+        """Search OpenCorporates database.
+        
+        OpenCorporates has 200M+ companies from global jurisdictions with open data license.
+        
+        Args:
+            company_name: Company name to search
+            jurisdiction: Optional jurisdiction code (e.g., 'us_ca', 'gb')
+            
+        Returns:
+            Dictionary containing company search results
+        """
+        return {
+            'api_type': self.api_type,
+            'source': 'opencorporates',
+            'company_name': company_name,
+            'jurisdiction': jurisdiction,
+            'base_url': 'https://api.opencorporates.com/v0.4',
+            'data_available': [
+                'company_name',
+                'company_number',
+                'jurisdiction',
+                'incorporation_date',
+                'company_type',
+                'registered_address',
+                'officers_directors',
+                'filing_history'
+            ],
+            'license': 'CC BY-SA 3.0 or commercial',
+            'message': 'Mock implementation. OpenCorporates provides both free and commercial access.'
+        }
+    
+    def enrich_company(self, domain: str) -> Dict[str, Any]:
+        """Enrich company data from domain name using The Companies API.
+        
+        Provides 300+ data points from a single domain name lookup.
+        
+        Args:
+            domain: Company domain (e.g., 'example.com')
+            
+        Returns:
+            Dictionary containing enriched company data
+        """
+        if not self.companies_api_key:
+            return {
+                'api_type': self.api_type,
+                'source': 'companies_api',
+                'message': 'The Companies API key required. Visit https://www.thecompaniesapi.com'
+            }
+        
+        return {
+            'api_type': self.api_type,
+            'source': 'companies_api',
+            'domain': domain,
+            'base_url': self.companies_base_url,
+            'data_points': '300+',
+            'database_size': '50M+ companies',
+            'features': [
+                'company_enrichment',
+                'natural_language_search',
+                'industry_filtering',
+                'location_search',
+                'employee_count_ranges'
+            ],
+            'message': 'Mock implementation. Configure API key to use real Companies API.'
+        }
+    
+    def search_coresignal(self, query: str, **kwargs) -> Dict[str, Any]:
+        """Search Coresignal company database.
+        
+        Fresh company data from public web with 70M+ profiles and 300+ fields.
+        
+        Args:
+            query: Search query
+            **kwargs: Filters like industry, location, headcount, etc.
+            
+        Returns:
+            Dictionary containing company search results
+        """
+        if not self.coresignal_key:
+            return {
+                'api_type': self.api_type,
+                'source': 'coresignal',
+                'message': 'Coresignal API key required. Visit https://coresignal.com'
+            }
+        
+        return {
+            'api_type': self.api_type,
+            'source': 'coresignal',
+            'query': query,
+            'filters': kwargs,
+            'base_url': self.coresignal_base_url,
+            'database_size': '70M+ companies',
+            'data_fields': '300+',
+            'avg_response_time': '176ms',
+            'features': [
+                'real_time_data',
+                'multi_source_aggregation',
+                'ai_enriched_fields',
+                'growth_metrics',
+                'employee_change_events'
+            ],
+            'message': 'Mock implementation. Configure API key to use real Coresignal API.'
         }

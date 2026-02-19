@@ -8,44 +8,69 @@ from .apis import (
     CourtRecordsAPI,
     PropertyRecordsAPI,
     BusinessRegistrationAPI,
-    GovernmentDataAPI
+    GovernmentDataAPI,
+    BackgroundCheckAPI,
+    VehicleRecordsAPI
 )
 
 
 class PublicRecordClient:
     """Unified client for accessing all public record APIs."""
     
-    def __init__(
-        self,
-        court_api_key: Optional[str] = None,
-        property_api_key: Optional[str] = None,
-        business_api_key: Optional[str] = None,
-        government_api_key: Optional[str] = None,
-        load_env: bool = True
-    ):
+    def __init__(self, load_env: bool = True):
         """Initialize the unified public record client.
         
         Args:
-            court_api_key: API key for court records
-            property_api_key: API key for property records
-            business_api_key: API key for business registrations
-            government_api_key: API key for government data
             load_env: Whether to load API keys from .env file
         """
         if load_env:
             load_dotenv()
         
-        # Initialize API keys from parameters or environment variables
-        self.court_api_key = court_api_key or os.getenv('UNICOURT_API_KEY')
-        self.property_api_key = property_api_key or os.getenv('PROPMIX_API_KEY')
-        self.business_api_key = business_api_key or os.getenv('BUSINESS_API_KEY')
-        self.government_api_key = government_api_key or os.getenv('DATA_GOV_API_KEY')
+        # Initialize Court Records API
+        self.court_records = CourtRecordsAPI(
+            api_key=os.getenv('UNICOURT_API_KEY'),
+            pacer_username=os.getenv('PACER_USERNAME'),
+            pacer_password=os.getenv('PACER_PASSWORD'),
+            courtlistener_token=os.getenv('COURTLISTENER_API_KEY'),
+            legiscan_key=os.getenv('LEGISCAN_API_KEY')
+        )
         
-        # Initialize API clients
-        self.court_records = CourtRecordsAPI(api_key=self.court_api_key)
-        self.property_records = PropertyRecordsAPI(api_key=self.property_api_key)
-        self.business_registration = BusinessRegistrationAPI(api_key=self.business_api_key)
-        self.government_data = GovernmentDataAPI(api_key=self.government_api_key)
+        # Initialize Property Records API
+        self.property_records = PropertyRecordsAPI(
+            api_key=os.getenv('BRIDGE_API_KEY'),
+            bridge_key=os.getenv('BRIDGE_API_KEY'),
+            first_american_key=os.getenv('FIRST_AMERICAN_API_KEY'),
+            rentcast_key=os.getenv('RENTCAST_API_KEY'),
+            housecanary_key=os.getenv('HOUSECANARY_API_KEY')
+        )
+        
+        # Initialize Business Registration API
+        self.business_registration = BusinessRegistrationAPI(
+            api_key=os.getenv('OPENCORPORATES_API_KEY'),
+            opencorporates_key=os.getenv('OPENCORPORATES_API_KEY'),
+            coresignal_key=os.getenv('CORESIGNAL_API_KEY'),
+            companies_api_key=os.getenv('COMPANIES_API_KEY')
+        )
+        
+        # Initialize Government Data API
+        self.government_data = GovernmentDataAPI(
+            api_key=os.getenv('DATA_GOV_API_KEY')
+        )
+        
+        # Initialize Background Check API
+        self.background_check = BackgroundCheckAPI(
+            api_key=os.getenv('CHECKR_API_KEY'),
+            checkr_key=os.getenv('CHECKR_API_KEY'),
+            gridlines_key=os.getenv('GRIDLINES_API_KEY'),
+            idenfy_key=os.getenv('IDENFY_API_KEY')
+        )
+        
+        # Initialize Vehicle Records API
+        self.vehicle_records = VehicleRecordsAPI(
+            api_key=os.getenv('NHTSA_API_KEY'),
+            vindata_key=os.getenv('VINDATA_API_KEY'),
+            idscan_key=os.getenv('IDSCAN_API_KEY')
+        )
     
     def search_all(self, query: str, **kwargs) -> Dict[str, Any]:
         """Search across all public record APIs.
@@ -55,13 +80,7 @@ class PublicRecordClient:
             **kwargs: Additional search parameters
             
         Returns:
-            Dictionary containing results from all APIs:
-            {
-                'court_records': {...},
-                'property_records': {...},
-                'business_registration': {...},
-                'government_data': {...}
-            }
+            Dictionary containing results from all APIs
         """
         results = {}
         
@@ -89,21 +108,30 @@ class PublicRecordClient:
         except Exception as e:
             results['government_data'] = {'error': str(e)}
         
+        # Search background checks
+        try:
+            results['background_check'] = self.background_check.search(query, **kwargs)
+        except Exception as e:
+            results['background_check'] = {'error': str(e)}
+        
+        # Search vehicle records
+        try:
+            results['vehicle_records'] = self.vehicle_records.search(query, **kwargs)
+        except Exception as e:
+            results['vehicle_records'] = {'error': str(e)}
+        
         return results
     
     def search_by_type(self, record_type: str, query: str, **kwargs) -> Dict[str, Any]:
         """Search a specific type of public record.
         
         Args:
-            record_type: Type of record ('court', 'property', 'business', 'government')
+            record_type: Type of record
             query: Search query
             **kwargs: Additional search parameters
             
         Returns:
             Search results for the specified record type
-            
-        Raises:
-            ValueError: If record_type is not valid
         """
         record_type = record_type.lower()
         
@@ -115,24 +143,25 @@ class PublicRecordClient:
             return self.business_registration.search(query, **kwargs)
         elif record_type in ['government', 'government_data']:
             return self.government_data.search(query, **kwargs)
+        elif record_type in ['background', 'background_check']:
+            return self.background_check.search(query, **kwargs)
+        elif record_type in ['vehicle', 'vehicle_records']:
+            return self.vehicle_records.search(query, **kwargs)
         else:
             raise ValueError(
                 f"Invalid record type: {record_type}. "
-                f"Valid types: court, property, business, government"
+                f"Valid types: court, property, business, government, background, vehicle"
             )
     
     def get_record_by_type(self, record_type: str, record_id: str) -> Dict[str, Any]:
         """Get a specific record by type and ID.
         
         Args:
-            record_type: Type of record ('court', 'property', 'business', 'government')
+            record_type: Type of record
             record_id: Record identifier
             
         Returns:
             Record details
-            
-        Raises:
-            ValueError: If record_type is not valid
         """
         record_type = record_type.lower()
         
@@ -144,10 +173,14 @@ class PublicRecordClient:
             return self.business_registration.get_record(record_id)
         elif record_type in ['government', 'government_data']:
             return self.government_data.get_record(record_id)
+        elif record_type in ['background', 'background_check']:
+            return self.background_check.get_record(record_id)
+        elif record_type in ['vehicle', 'vehicle_records']:
+            return self.vehicle_records.get_record(record_id)
         else:
             raise ValueError(
                 f"Invalid record type: {record_type}. "
-                f"Valid types: court, property, business, government"
+                f"Valid types: court, property, business, government, background, vehicle"
             )
     
     def get_available_apis(self) -> List[str]:
@@ -160,7 +193,9 @@ class PublicRecordClient:
             'court_records',
             'property_records',
             'business_registration',
-            'government_data'
+            'government_data',
+            'background_check',
+            'vehicle_records'
         ]
     
     def get_api_status(self) -> Dict[str, bool]:
@@ -170,8 +205,10 @@ class PublicRecordClient:
             Dictionary mapping API types to configuration status
         """
         return {
-            'court_records': bool(self.court_api_key),
-            'property_records': bool(self.property_api_key),
-            'business_registration': bool(self.business_api_key),
-            'government_data': bool(self.government_api_key)
+            'court_records': bool(os.getenv('UNICOURT_API_KEY') or os.getenv('PACER_USERNAME')),
+            'property_records': bool(os.getenv('BRIDGE_API_KEY') or os.getenv('RENTCAST_API_KEY')),
+            'business_registration': bool(os.getenv('OPENCORPORATES_API_KEY') or os.getenv('CORESIGNAL_API_KEY')),
+            'government_data': bool(os.getenv('DATA_GOV_API_KEY')),
+            'background_check': bool(os.getenv('CHECKR_API_KEY') or os.getenv('IDENFY_API_KEY')),
+            'vehicle_records': bool(os.getenv('VINDATA_API_KEY') or os.getenv('IDSCAN_API_KEY'))
         }
