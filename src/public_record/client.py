@@ -2,7 +2,8 @@
 
 from typing import Dict, Any, Optional, List
 import os
-from dotenv import load_dotenv
+
+from .env_loader import load_env as load_shared_env
 
 from .apis import (
     CourtRecordsAPI,
@@ -21,10 +22,11 @@ class PublicRecordClient:
         """Initialize the unified public record client.
         
         Args:
-            load_env: Whether to load API keys from .env file
+            load_env: Whether to load API keys from the shared secrets file
+                (APEX_ENV_FILE or ~/.config/apex/secrets.env), with .env as fallback
         """
         if load_env:
-            load_dotenv()
+            load_shared_env(project="public_record")
         
         # Initialize Court Records API
         self.court_records = CourtRecordsAPI(

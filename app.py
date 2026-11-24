@@ -3,12 +3,13 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
 
 from src.public_record import PublicRecordClient
+from src.public_record.env_loader import load_env
 
 # Load environment variables
-load_dotenv()
+# Keys come from the one shared secrets file (see src/public_record/env_loader.py).
+load_env(project="public_record")
 
 # Initialize Flask app
 app = Flask(__name__, 
